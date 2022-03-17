@@ -1,5 +1,6 @@
 import esprima from 'esprima'
 import fs from 'fs';
+import esprimaWalk from 'esprima-walk';
 
 function begin() {
     var walk = function (dir) {
@@ -47,69 +48,51 @@ function begin() {
             console.log(called_api);
 
             success = success + 1;
+            // console.log(input_file)
             console.log(success);
         } catch (e) {
             // console.error('skip a file' + input_file);
-            // console.log(e);
+            console.log(e);
             failed = failed + 1;
         }
-        
-        // var code = fs.readFile(input_file, {encoding: 'utf-8'});
-        // var ast = esprima.parseScript(code);
-        // traverse(ast,handle_ast_node);
+
     }
     function traverse(node, reached_node, called_api,handle_ast_node) {
-        handle_ast_node(node, reached_node, called_api)
         
-        // console.log('inside '+called_api);
-
-        for (var key in node) { //2
-            if (node.hasOwnProperty(key)) { //3
-                var child = node[key];
-                if (typeof child === 'object' && child !== null) { //4
-
-                    if (Array.isArray(child)) {
-                        child.forEach(function (node) { //5
-                            reached_node.push(node);
-                            traverse(node, reached_node, called_api,handle_ast_node);
-
-                            reached_node.pop();
-
-                        });
-                    } else {
-                        reached_node.push(child);
-                        traverse(child, reached_node, called_api,handle_ast_node);
-                        
-                        //6
-                        reached_node.pop();
-                    }
-                }
-            }
+        esprimaWalk(node, function(node){
+            handle_ast_node(node, reached_node, called_api);
         }
-        // return called_api;
+        );
+        
     }
 
     function handle_ast_node(node, reached_node, called_api) {
-        // console.log('handle ast node '+called_api);
-        if (node.type == "CallExpression" && node.callee.type == "MemberExpression" && node.callee.object.object.name == "chrome") {
-            //this is a start of a chrome API calle
-            // three layers
-            var api_name = node.callee.object.object.name + "." + node.callee.object.property.name + "." + node.callee.property.name;
-            var api_argument = node.arguments;
-            // called_api.push(JSON.stringify({"name":api_name,"argument":api_argument}));
-            var tmp={ "name": api_name, "argument": api_argument };
-            called_api.push(tmp);
-            console.log(called_api);
-        } else if (node.type == "CallExpression" && node.callee.type == "MemberExpression" && node.callee.object.type == "MemberExpression" && node.callee.object.object.object.name == "chrome") {
-            //this is a start of a chrome API calle
-            // four layers
-            var api_name = node.callee.object.object.object.name + "." + node.callee.object.object.property.name + "." + node.callee.object.property.name + "." + node.callee.property.name;
-            var api_argument = node.arguments;
-            // called_api.push(JSON.stringify({"name":api_name,"argument":api_argument}));
-            var tmp={ "name": api_name, "argument": api_argument };
-            called_api.push(tmp);
-            console.log(called_api);
+        
+        reached_node.push(node);
+        try{
+            if (node.type == "CallExpression" && node.callee.type == "MemberExpression" && node.callee.object.object.name == "chrome") {
+                //this is a start of a chrome API calle
+                // three layers
+                var api_name = node.callee.object.object.name + "." + node.callee.object.property.name + "." + node.callee.property.name;
+                var api_argument = node.arguments;
+                // called_api.push(JSON.stringify({"name":api_name,"argument":api_argument}));
+                var tmp={ "name": api_name, "argument": api_argument };
+                called_api.push(tmp);
+                // console.log(called_api);
+            } else if (node.type == "CallExpression" && node.callee.type == "MemberExpression" && node.callee.object.type == "MemberExpression" && node.callee.object.object.object.name == "chrome") {
+                //this is a start of a chrome API calle
+                // four layers
+                var api_name = node.callee.object.object.object.name + "." + node.callee.object.object.property.name + "." + node.callee.object.property.name + "." + node.callee.property.name;
+                var api_argument = node.arguments;
+                // called_api.push(JSON.stringify({"name":api_name,"argument":api_argument}));
+                var tmp={ "name": api_name, "argument": api_argument };
+                called_api.push(tmp);
+                // console.log(called_api);
+            }
+        }catch(e){
+            ;
         }
+        reached_node.pop();
         // console.log('74'+called_api);
         // return called_api;
 
