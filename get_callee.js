@@ -21,14 +21,14 @@ function begin() {
         return results;
     }
 
-    function traverse_file(dir,handle_ast_file) {
+    function traverse_file(dir,handle_ast_file1) {
         var js_file = walk(dir);
 
         js_file.forEach(function (p) {
             if (p.slice(-3) == ".js") {
                 // console.log(p);
                 var output = p.slice(0, -3) + '_temp.json'
-                handle_ast_file(p, output,traverse);
+                handle_ast_file1(p, output,traverse);
             }
         });
 
@@ -71,14 +71,14 @@ function begin() {
                     if (Array.isArray(child)) {
                         child.forEach(function (node) { //5
                             reached_node.push(node);
-                            traverse(node, reached_node, called_api,handle_ast_node)
+                            traverse(node, reached_node, called_api,handle_ast_node);
 
                             reached_node.pop();
 
                         });
                     } else {
                         reached_node.push(child);
-                        traverse(child, reached_node, called_api,handle_ast_node)
+                        traverse(child, reached_node, called_api,handle_ast_node);
                         
                         //6
                         reached_node.pop();
@@ -99,7 +99,7 @@ function begin() {
             // called_api.push(JSON.stringify({"name":api_name,"argument":api_argument}));
             var tmp={ "name": api_name, "argument": api_argument };
             called_api.push(tmp);
-            console.log('74'+called_api);
+            console.log(called_api);
         } else if (node.type == "CallExpression" && node.callee.type == "MemberExpression" && node.callee.object.type == "MemberExpression" && node.callee.object.object.object.name == "chrome") {
             //this is a start of a chrome API calle
             // four layers
@@ -108,7 +108,7 @@ function begin() {
             // called_api.push(JSON.stringify({"name":api_name,"argument":api_argument}));
             var tmp={ "name": api_name, "argument": api_argument };
             called_api.push(tmp);
-            console.log('74'+called_api);
+            console.log(called_api);
         }
         // console.log('74'+called_api);
         // return called_api;
